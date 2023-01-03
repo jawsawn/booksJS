@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BooksJS</title>
+    <meta name="description" content="Touhou 6 Stage 4 Simulator (and more)" />
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <canvas id="game_canvas"></canvas>
+    <div id="sidebar">
+        <button type="button" onclick="startNormalMode()">Normal Mode</button><br>
+        <button type="button" onclick="startLunaticMode()" >Lunatic Mode</button><br><br>
+        
+        <button type="button" onclick="resetGame()" >Reset Game</button><br>
+
+        <span>Safespot Check:</span><input type="checkbox" id="checkboxSafespot" onclick="checkboxSafespot()"><br>
+        <span>Awful Mode:</span><input type="checkbox" id="checkboxAwful" onclick="checkboxAwful()">
+    </div>
+</body>
+</html>

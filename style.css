@@ -1,0 +1,22 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #333;
+    display: grid;
+    height: 100vh;
+    place-content: center;
+    grid-template-columns: auto auto;
+}
+#sidebar {
+    padding: 20px;
+    background-color: #555;
+    text-align: center;
+}
+
+#sidebar > * {
+    margin-bottom: 10px;
+}
