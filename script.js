@@ -17,9 +17,14 @@ const gameMusic = new Audio("resources/sound/game_music.mp3");
 gameMusic.loop = true;
 let gameMode = null;
 let timeoutArray = [];
-
+//Checkboxes
 let checkboxSafespotValue = false;
 let checkboxAwfulValue = false;
+//FPS Counter
+let fpsActivity = [];
+//Fps Tamer
+let tthen = Date.now();
+let targetFps = 60;
 
 //Da Game
 initGame();
@@ -37,10 +42,20 @@ function initGame() {
 
 function runGame() {
     rafId = requestAnimationFrame(runGame)
-    if (!checkboxSafespotValue) ctx.clearRect(0, 0, canvasSize, canvasSize);
-    bookArray.forEach(el => el.draw());
-    bulletArray.forEach(el => el.draw());
+    let tnow = Date.now();
 
+    if ((tnow - tthen) > (1000 / targetFps)) {
+        tthen = tnow - ((tnow - tthen) % (1000 / targetFps));
+        //Game Logic
+        if (!checkboxSafespotValue) ctx.clearRect(0, 0, canvasSize, canvasSize);
+        bookArray.forEach(el => el.draw());
+        bulletArray.forEach(el => el.draw());
+        //Fps Counter
+        const now = performance.now();
+        while (fpsActivity[0] < now - 998) fpsActivity.shift();
+        fpsActivity.push(now);
+        document.getElementById("fpsCounter").innerText = fpsActivity.length;
+    }
 }
 
 function resetGame() {
@@ -94,13 +109,13 @@ class Bullet {
         this.vy = vy;
         this.typeBig = typeBig;
         this.size = size;
-        this.timer = 30;
+        this.timer = 15;
         this.isStatic = isStatic;
     }
     draw() {
-        if (this.x > canvas.width + 10 || this.x + 10 < 0 || this.y > canvas.height + 10 || this.y + 10 < 0 ) return;
-
-        //cancer
+        //Despawn Out of Bounds
+        if (this.x > canvas.width + 10 || this.x + 10 < 0 || this.y > canvas.height + 10 || this.y + 10 < 0) return;
+        //Awful Mode
         if (checkboxAwfulValue) {
             if (this.x > canvas.width)
                 this.vx *= -1;
@@ -111,14 +126,18 @@ class Bullet {
             else if (this.y < 0)
                 this.vy *= -1;
         }
+        //Logic
         ctx.save();
         if (this.isStatic) ctx.globalAlpha = this.timer / 30;
         ctx.drawImage(imageBigBullet, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
         ctx.restore();
         if (this.timer > 0)
             this.timer -= 1;
-        this.x += this.vx * (this.timer * 0.2 + 1);
-        this.y += this.vy * (this.timer * 0.2 + 1);
+        this.x += this.vx * (this.timer * 0.2 + 1)*3;
+        this.y += this.vy * (this.timer * 0.2 + 1)*3;
+
+    }
+    logic() {
 
     }
     collisionCheck() {
@@ -135,12 +154,12 @@ class Book {
     }
     draw() {
         ctx.save();
-        if(this.timer < 100) ctx.globalAlpha = this.timer *0.01;
+        if (this.timer < 100) ctx.globalAlpha = this.timer * 0.01;
         ctx.drawImage(imageBookBackground, this.x - 60, this.y - 60);
         ctx.drawImage(imageBook, (this.x - this.size / 2), (this.y - this.size / 2) + Math.sin(this.timer * 0.03) * 4, this.size, this.size);
         ctx.restore();
 
-        if (this.timer % 120 == 0) {
+        if (this.timer % 60 == 0) {
             //rng rotation
             let rot = Math.floor(Math.random() * 10)
             //Book Explosion
@@ -154,29 +173,28 @@ class Book {
             }));
             //Normal Mode
             if (gameMode == "normal") {
-                for (let index = 0; index < 11; index++)
+                let bulletCount = 11;
+                for (let index = 0; index < bulletCount; index++) {
                     bulletArray.push(new Bullet({
                         x: this.x,
                         y: this.y,
-                        vx: Math.cos(2 * Math.PI * (index + rot * 0.1) / 11),
-                        vy: Math.sin(2 * Math.PI * (index + rot * 0.1) / 11),
+                        vx: Math.cos(2 * Math.PI * (index + rot * 0.1) / bulletCount),
+                        vy: Math.sin(2 * Math.PI * (index + rot * 0.1) / bulletCount),
                         typeBig: true
                     }));
-
-                for (let index = 0; index < 11; index++)
                     bulletArray.push(new Bullet({
                         x: this.x,
                         y: this.y,
-                        vx: Math.cos(2 * Math.PI * ((index + rot * 0.1) + 0.5) / 11),
-                        vy: Math.sin(2 * Math.PI * ((index + rot * 0.1) + 0.5) / 11),
+                        vx: Math.cos(2 * Math.PI * ((index + rot * 0.1) + 0.5) / bulletCount),
+                        vy: Math.sin(2 * Math.PI * ((index + rot * 0.1) + 0.5) / bulletCount),
                         typeBig: false
                     }));
-            }
+                }
+            } else
             //Lunatic Mode
             if (gameMode == "lunatic") {
                 let bulletCount = 15;
-                //Big Bullet
-                for (let index = 0; index < bulletCount; index++)
+                for (let index = 0; index < bulletCount; index++) {
                     bulletArray.push(new Bullet({
                         x: this.x,
                         y: this.y,
@@ -184,8 +202,6 @@ class Book {
                         vy: Math.sin(2 * Math.PI * (index + rot * 0.1) / bulletCount) * 1.2,
                         typeBig: true
                     }));
-                //Small Bullet
-                for (let index = 0; index < bulletCount; index++)
                     bulletArray.push(new Bullet({
                         x: this.x,
                         y: this.y,
@@ -193,6 +209,7 @@ class Book {
                         vy: Math.sin(2 * Math.PI * ((index + rot * 0.1) + 0.3) / bulletCount) * 1.2,
                         typeBig: false
                     }));
+                }
                 //Secondary
                 timeoutArray.push(
                     setTimeout(() => {
@@ -235,12 +252,15 @@ function handleClick(event) {
 
 function checkboxSafespot() {
     const checkBox = document.getElementById("checkboxSafespot");
-    if (checkBox.checked == true) checkboxSafespotValue = true;
-    else checkboxSafespotValue = false;
+    checkboxSafespotValue = checkBox.checked ? true : false;
 }
 
 function checkboxAwful() {
     const checkBox = document.getElementById("checkboxAwful");
-    if (checkBox.checked == true) checkboxAwfulValue = true;
-    else checkboxAwfulValue = false;
+    checkboxAwfulValue = checkBox.checked ? true : false;
+}
+
+function checkboxUncapped() {
+    const checkBox = document.getElementById("checkboxUncapped");
+    targetFps = checkBox.checked ? 200 : 60;
 }
