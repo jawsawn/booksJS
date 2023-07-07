@@ -20,3 +20,7 @@ body {
 #sidebar > * {
     margin-bottom: 10px;
 }
+
+#game_canvas {
+    background: url("resources/image/library.png");
+}

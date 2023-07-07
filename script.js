@@ -12,10 +12,13 @@ const imageBook = new Image();
 imageBook.src = "resources/image/book.png"
 const imageBookBackground = new Image();
 imageBookBackground.src = "resources/image/book_background.png"
+const imageJoel = new Image();
+imageJoel.src = "resources/image/joel.png"
 
 const gameMusic = new Audio("resources/sound/game_music.mp3");
 gameMusic.loop = true;
 let gameMode = null;
+let joelMode = false;
 let timeoutArray = [];
 //Checkboxes
 let checkboxSafespotValue = false;
@@ -25,6 +28,7 @@ let fpsActivity = [];
 //Fps Tamer
 let tthen = Date.now();
 let targetFps = 60;
+let frames = 0;
 
 //Da Game
 initGame();
@@ -43,6 +47,7 @@ function initGame() {
 function runGame() {
     rafId = requestAnimationFrame(runGame)
     let tnow = Date.now();
+    //console.log(fpsActivity[0])
 
     if ((tnow - tthen) > (1000 / targetFps)) {
         tthen = tnow - ((tnow - tthen) % (1000 / targetFps));
@@ -50,6 +55,7 @@ function runGame() {
         if (!checkboxSafespotValue) ctx.clearRect(0, 0, canvasSize, canvasSize);
         bookArray.forEach(el => el.draw());
         bulletArray.forEach(el => el.draw());
+        frames++;
         //Fps Counter
         const now = performance.now();
         while (fpsActivity[0] < now - 998) fpsActivity.shift();
@@ -102,7 +108,7 @@ function startLunaticMode() {
 }
 
 class Bullet {
-    constructor({ x, y, vx, vy, typeBig, size = (typeBig ? 20 : 10), isStatic = false }) {
+    constructor({ x, y, vx, vy, typeBig, size = (typeBig ? 25 : 15), isStatic = false }) {
         this.x = x;
         this.y = y;
         this.vx = vx;
@@ -129,12 +135,15 @@ class Bullet {
         //Logic
         ctx.save();
         if (this.isStatic) ctx.globalAlpha = this.timer / 30;
-        ctx.drawImage(imageBigBullet, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+        if (joelMode) {
+            ctx.drawImage(imageJoel, 96*(frames%36), 0 , 96, 32, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+        } else
+            ctx.drawImage(imageBigBullet, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size,);
         ctx.restore();
         if (this.timer > 0)
             this.timer -= 1;
-        this.x += this.vx * (this.timer * 0.2 + 1)*3;
-        this.y += this.vy * (this.timer * 0.2 + 1)*3;
+        this.x += this.vx * (this.timer * 0.2 + 1) * 3;
+        this.y += this.vy * (this.timer * 0.2 + 1) * 3;
 
     }
     logic() {
@@ -156,7 +165,10 @@ class Book {
         ctx.save();
         if (this.timer < 100) ctx.globalAlpha = this.timer * 0.01;
         ctx.drawImage(imageBookBackground, this.x - 60, this.y - 60);
-        ctx.drawImage(imageBook, (this.x - this.size / 2), (this.y - this.size / 2) + Math.sin(this.timer * 0.03) * 4, this.size, this.size);
+        if (joelMode) {
+            ctx.drawImage(imageJoel, 96 * (frames % 36), 0, 96, 32, (this.x - this.size / 2), (this.y - this.size / 2) + Math.sin(this.timer * 0.03) * 4, this.size, this.size);
+        } else
+            ctx.drawImage(imageBook, (this.x - this.size / 2), (this.y - this.size / 2) + Math.sin(this.timer * 0.03) * 4, this.size, this.size);
         ctx.restore();
 
         if (this.timer % 60 == 0) {
@@ -191,48 +203,48 @@ class Book {
                     }));
                 }
             } else
-            //Lunatic Mode
-            if (gameMode == "lunatic") {
-                let bulletCount = 15;
-                for (let index = 0; index < bulletCount; index++) {
-                    bulletArray.push(new Bullet({
-                        x: this.x,
-                        y: this.y,
-                        vx: Math.cos(2 * Math.PI * (index + rot * 0.1) / bulletCount) * 1.2,
-                        vy: Math.sin(2 * Math.PI * (index + rot * 0.1) / bulletCount) * 1.2,
-                        typeBig: true
-                    }));
-                    bulletArray.push(new Bullet({
-                        x: this.x,
-                        y: this.y,
-                        vx: Math.cos(2 * Math.PI * ((index + rot * 0.1) + 0.3) / bulletCount) * 1.2,
-                        vy: Math.sin(2 * Math.PI * ((index + rot * 0.1) + 0.3) / bulletCount) * 1.2,
-                        typeBig: false
-                    }));
+                //Lunatic Mode
+                if (gameMode == "lunatic") {
+                    let bulletCount = 15;
+                    for (let index = 0; index < bulletCount; index++) {
+                        bulletArray.push(new Bullet({
+                            x: this.x,
+                            y: this.y,
+                            vx: Math.cos(2 * Math.PI * (index + rot * 0.1) / bulletCount) * 1.2,
+                            vy: Math.sin(2 * Math.PI * (index + rot * 0.1) / bulletCount) * 1.2,
+                            typeBig: true
+                        }));
+                        bulletArray.push(new Bullet({
+                            x: this.x,
+                            y: this.y,
+                            vx: Math.cos(2 * Math.PI * ((index + rot * 0.1) + 0.3) / bulletCount) * 1.2,
+                            vy: Math.sin(2 * Math.PI * ((index + rot * 0.1) + 0.3) / bulletCount) * 1.2,
+                            typeBig: false
+                        }));
+                    }
+                    //Secondary
+                    timeoutArray.push(
+                        setTimeout(() => {
+                            //Big Bullet2
+                            for (let index = 0; index < bulletCount; index++)
+                                bulletArray.push(new Bullet({
+                                    x: this.x,
+                                    y: this.y,
+                                    vx: Math.cos(2 * Math.PI * (index + rot * 0.1) / bulletCount) * 1.4,
+                                    vy: Math.sin(2 * Math.PI * (index + rot * 0.1) / bulletCount) * 1.4,
+                                    typeBig: true
+                                }));
+                            //Small Bullet2
+                            for (let index = 0; index < bulletCount; index++)
+                                bulletArray.push(new Bullet({
+                                    x: this.x,
+                                    y: this.y,
+                                    vx: Math.cos(2 * Math.PI * ((index + rot * 0.1) + 0.3) / bulletCount) * 1.4,
+                                    vy: Math.sin(2 * Math.PI * ((index + rot * 0.1) + 0.3) / bulletCount) * 1.4,
+                                    typeBig: false
+                                }));
+                        }, 100))
                 }
-                //Secondary
-                timeoutArray.push(
-                    setTimeout(() => {
-                        //Big Bullet2
-                        for (let index = 0; index < bulletCount; index++)
-                            bulletArray.push(new Bullet({
-                                x: this.x,
-                                y: this.y,
-                                vx: Math.cos(2 * Math.PI * (index + rot * 0.1) / bulletCount) * 1.4,
-                                vy: Math.sin(2 * Math.PI * (index + rot * 0.1) / bulletCount) * 1.4,
-                                typeBig: true
-                            }));
-                        //Small Bullet2
-                        for (let index = 0; index < bulletCount; index++)
-                            bulletArray.push(new Bullet({
-                                x: this.x,
-                                y: this.y,
-                                vx: Math.cos(2 * Math.PI * ((index + rot * 0.1) + 0.3) / bulletCount) * 1.4,
-                                vy: Math.sin(2 * Math.PI * ((index + rot * 0.1) + 0.3) / bulletCount) * 1.4,
-                                typeBig: false
-                            }));
-                    }, 100))
-            }
 
         }
 
@@ -263,4 +275,9 @@ function checkboxAwful() {
 function checkboxUncapped() {
     const checkBox = document.getElementById("checkboxUncapped");
     targetFps = checkBox.checked ? 200 : 60;
+}
+
+function checkboxJoelMode() {
+    const checkBox = document.getElementById("checkboxJoelMode");
+    joelMode = checkBox.checked ? true : false;
 }
