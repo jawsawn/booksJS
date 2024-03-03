@@ -15,10 +15,14 @@ imageBookBackground.src = "resources/image/book_background.png"
 const imageJoel = new Image();
 imageJoel.src = "resources/image/joel.png"
 
+const imageFree = new Image();
+imageFree.src = "resources/image/free.png"
+
 const gameMusic = new Audio("resources/sound/game_music.mp3");
 gameMusic.loop = true;
 let gameMode = null;
 let joelMode = false;
+let freeMode = false;
 let timeoutArray = [];
 //Checkboxes
 let checkboxSafespotValue = false;
@@ -137,7 +141,10 @@ class Bullet {
         if (this.isStatic) ctx.globalAlpha = this.timer / 30;
         if (joelMode) {
             ctx.drawImage(imageJoel, 96*(frames%36), 0 , 96, 32, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
-        } else
+        } else if (freeMode) {
+            ctx.drawImage(imageFree, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size,);
+        }
+        else
             ctx.drawImage(imageBigBullet, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size,);
         ctx.restore();
         if (this.timer > 0)
@@ -280,4 +287,9 @@ function checkboxUncapped() {
 function checkboxJoelMode() {
     const checkBox = document.getElementById("checkboxJoelMode");
     joelMode = checkBox.checked ? true : false;
+}
+
+function checkboxFreeMode() {
+    const checkBox = document.getElementById("checkboxFreeMode");
+    freeMode = checkBox.checked ? true : false;
 }
